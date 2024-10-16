@@ -1,10 +1,13 @@
 from .models import User
 from .serializers import SignUpSerializer, LoginSerializer
-from .utils import verify_account_mail
+from .utils import verify_account_mail, password_reset_mail
 import os, jwt
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from dotenv import load_dotenv
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -114,4 +117,100 @@ def login(request):
                     'success':True,
                     'message':tokens
                 }, status=status.HTTP_200_OK
+            )
+
+@api_view(['POST'])
+def password_reset(request):
+    if request.method == 'POST':
+        email = request.data.get('email')
+
+        if not email:
+            return Response(
+                {
+                    'success':False,
+                    'message':'Email is required'
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            user = User.objects.get(email=email)
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            current_site = get_current_site(request).domain
+            relative_link = reverse('password_reset_confirm')
+            absolute_url = f'http://{current_site}{relative_link}?uid={uid}&token={token}'
+            link = str(absolute_url)
+            password_reset_mail(email=user.email, first_name=user.first_name, link=link)
+
+            return Response(
+                {
+                    'success':True,
+                    'message':'Password reset mail sent'
+                }, status=status.HTTP_200_OK
+            )
+        except User.DoesNotExist as e:
+            return Response (
+                {
+                    'success':False,
+                    'message':'User does not exist'
+                }, status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response (
+                {
+                    'success':False,
+                    'message':str(e)
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+@api_view(['PUT', 'PATCH'])
+def password_reset_confirm(request):
+    if request.method == 'PUT' or request.method == 'PATCH':
+        uid = request.data.get('uid')
+        token = request.data.get('token')
+        password = request.data.get('password')
+
+        if not uid or not token or not password:
+            return Response (
+                {
+                    'success':False,
+                    'message':'All fields are required'
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            user_id = urlsafe_base64_decode(uid)
+            user = User.objects.get(id=uid)
+
+            if not default_token_generator.check_token(user, token):
+                return Response(
+                    {
+                        'success':True,
+                        'message':'Invalid token'
+                    }, status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            user.set_password(password)
+            user.save()
+
+            return Response(
+                {
+                    'success':True,
+                    'message':'Password reset successful'
+                }, status=status.HTTP_200_OK
+            )
+        except User.DoesNotExist as e:
+            return Response (
+                {
+                    'success':False,
+                    'message':'User does not exist'
+                }, status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response (
+                {
+                    'success':False,
+                    'message':str(e)
+                }, status=status.HTTP_400_BAD_REQUEST
             )
