@@ -1,5 +1,5 @@
 from .models import User
-from .serializers import SignUpSerializer, LoginSerializer
+from .serializers import SignUpSerializer, LoginSerializer, UserSerializer
 from .utils import verify_account_mail, password_reset_mail
 import os, jwt
 from django.contrib.auth.tokens import default_token_generator
@@ -10,8 +10,9 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from dotenv import load_dotenv
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes #
 from rest_framework.response import Response
+from rest_framework.permissions import IsAdminUser
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
@@ -88,7 +89,7 @@ def verify_user(request):
                     'message':'Invalid token'
                 }, status=status.HTTP_400_BAD_REQUEST
             )
-        except user.DoesNotExist as e:
+        except User.DoesNotExist as e:
             return Response(
                 {
                     'success':False,
@@ -214,3 +215,27 @@ def password_reset_confirm(request):
                     'message':str(e)
                 }, status=status.HTTP_400_BAD_REQUEST
             )
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def get_user_by_id(request, id):
+    if request.method == 'GET':
+        try:
+            user = User.objects.get(id=id)
+        except User.DoesNotExist:
+            return Response(
+                {
+                    'success':False,
+                    'message':'User does not exist'
+                }, status=status.HTTP_404_NOT_FOUND
+            )
+        
+        serializer = UserSerializer(user)
+
+        return Response(
+            {
+                'success':True,
+                'message':serializer.data
+            }, status=status.HTTP_200_OK
+        )
