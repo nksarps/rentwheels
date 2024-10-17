@@ -8,4 +8,5 @@ urlpatterns = [
     path('login', views.login, name='login'),
     path('password-reset', views.password_reset, name='password_reset'),
     path('password-reset-confirm', views.password_reset_confirm, name='password_reset_confirm'),
+    path('user/<str:id>', views.get_user_by_id, name='get_user_by_id'),
 ]
