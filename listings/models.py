@@ -4,16 +4,14 @@ from django.db import models
 class Listing(models.Model):
     TRANSMISSION_CHOICES = [
         ('automatic', 'Automatic'),
-        ('manual', 'Manual'),
+        ('manual', 'Manual')
     ]
 
     RENTAL_STATUS = [
         ('available', 'Available'),
-        ('rented', 'Rented'),
-        ('maintainance', 'Under Maintainance')
+        ('rented', 'Rented')
     ]
 
-    image = models.ImageField(null=True, blank=True)
     make = models.CharField(max_length=50)
     model = models.CharField(max_length=50)
     year = models.PositiveIntegerField()
@@ -36,4 +34,7 @@ class Listing(models.Model):
         ordering = ('-added_at',)
 
 
+class Image(models.Model):
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    image = models.ImageField(blank=True, null=True)
 
