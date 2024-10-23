@@ -40,4 +40,23 @@ python -m venv venv
 source venv/bin/activate # For Linux/macOS
 venv\Scripts\activate # For Windows
 ```
+4. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+5. Apply migrations:
+```bash
+python manage.py migrate
+```
+
+6. Create super user:
+```bash
+python manage.py createsuperuser
+```
+
+7. Run development server:
+```bash
+python manage.py runserver
+```
 
