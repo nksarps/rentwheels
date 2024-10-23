@@ -26,7 +26,7 @@ A REST API designed to streamline the processes of managing a car rental company
 ### **Installation**
 1. Clone the repository:
 ```bash
-git clone <https://github.com/kweku-xvi/rentwheels>
+git clone https://github.com/kweku-xvi/rentwheels
 ```
 
 2. Change directory:
