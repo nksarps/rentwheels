@@ -36,7 +36,7 @@ cd rentwheels
 
 3. Create a virtual environment:
 ```bash 
-python -m venv venv 
+python -m venv venv
 source venv/bin/activate # For Linux/macOS
 venv\Scripts\activate # For Windows
 ```
