@@ -182,7 +182,7 @@ def password_reset_confirm(request):
 
         try:
             user_id = urlsafe_base64_decode(uid)
-            user = User.objects.get(id=uid)
+            user = User.objects.get(id=user_id)
 
             if not default_token_generator.check_token(user, token):
                 return Response(
